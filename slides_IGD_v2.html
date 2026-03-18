@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGD × FiveM — Jonathan D'Ercoli</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050b14;
+  --panel: #0a1628;
+  --panel2: #0c1e36;
+  --border: rgba(0,245,255,0.13);
+  --cyan: #00f5ff;
+  --green: #39ff14;
+  --yellow: #ffe600;
+  --red: #ff2d55;
+  --orange: #ff6b1a;
+  --purple: #bc00ff;
+  --text: #c8daf0;
+  --dim: #4a6380;
+  --white: #ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:#000;font-family:'Rajdhani',sans-serif;overflow:hidden;}
+
+/* scanlines */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.1) 3px,rgba(0,0,0,0.1) 4px);pointer-events:none;z-index:999;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 55% 40% at 15% 15%,rgba(0,245,255,0.06) 0%,transparent 60%),radial-gradient(ellipse 45% 50% at 85% 85%,rgba(188,0,255,0.05) 0%,transparent 60%);pointer-events:none;z-index:0;}
+
+/* ── SLIDE ── */
+.slideshow{width:100%;height:100vh;position:relative;}
+.slide{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.45s ease;overflow:hidden;}
+.slide.active{opacity:1;pointer-events:all;}
+.slide::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.1) 3px,rgba(0,0,0,0.1) 4px);pointer-events:none;z-index:100;}
+
+/* ── TOPBAR ── */
+.topbar{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:16px 50px 10px;flex-shrink:0;border-bottom:1px solid rgba(0,245,255,0.08);}
+.tb-left{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:var(--cyan);opacity:0.6;text-transform:uppercase;}
+.tb-center{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--dim);}
+.tb-right{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--dim);}
+
+/* ── CONTENT AREA ── */
+.sc{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;padding:22px 55px 16px;overflow:hidden;}
+
+/* ── HEADINGS ── */
+.stag{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:4px;color:var(--cyan);text-transform:uppercase;margin-bottom:5px;opacity:0.8;}
+.sh{font-family:'Orbitron',monospace;font-size:clamp(16px,2.4vw,26px);font-weight:700;color:#fff;letter-spacing:2px;margin-bottom:5px;text-shadow:0 0 20px rgba(0,245,255,0.25);}
+.sh span{color:var(--cyan);}
+.hline{width:50px;height:2px;background:var(--cyan);box-shadow:0 0 8px var(--cyan);margin-bottom:18px;}
+
+/* ── TITLE SLIDE ── */
+.title-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;}
+.t-tag{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:5px;color:var(--cyan);opacity:0.65;}
+.t-main{font-family:'Orbitron',monospace;font-size:clamp(26px,4vw,46px);font-weight:900;color:#fff;text-shadow:0 0 40px var(--cyan),0 0 80px rgba(0,245,255,0.2);line-height:1.15;letter-spacing:3px;}
+.t-main span{color:var(--cyan);}
+.t-div{width:100px;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+.t-sub{font-size:14px;color:var(--dim);letter-spacing:2px;max-width:580px;line-height:1.6;}
+.t-author{font-family:'Orbitron',monospace;font-size:13px;color:var(--text);letter-spacing:2px;}
+.t-univ{font-size:12px;color:var(--dim);letter-spacing:1.5px;}
+.t-meta{display:flex;gap:32px;}
+.t-meta-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 20px;border:1px solid var(--border);border-radius:3px;background:rgba(0,245,255,0.03);}
+.t-meta-k{font-size:9px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;}
+.t-meta-v{font-family:'Orbitron',monospace;font-size:12px;color:var(--cyan);}
+
+/* ── LAYOUT HELPERS ── */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:1;}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.col{display:flex;flex-direction:column;gap:14px;}
+
+/* ── CARD ── */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:18px 16px;position:relative;overflow:hidden;flex-shrink:0;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0.5;}
+.clabel{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px;opacity:0.85;}
+.cbody{font-size:13px;color:var(--text);line-height:1.65;}
+.cbody strong{color:var(--cyan);}
+.cbody em{color:var(--yellow);font-style:normal;font-weight:600;}
+
+/* ── BODY TEXT ── */
+.bt{font-size:13.5px;color:var(--text);line-height:1.75;margin-bottom:12px;}
+.bt strong{color:var(--cyan);}
+.bt em{color:var(--yellow);font-style:normal;font-weight:600;}
+.bt:last-child{margin-bottom:0;}
+
+/* ── STAT BOXES ── */
+.stat-row{display:flex;gap:14px;margin-bottom:16px;}
+.sbox{flex:1;border:1px solid;border-radius:4px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;}
+.sbox::before{content:'';position:absolute;inset:0;opacity:0.07;}
+.sbox.c{border-color:var(--cyan);color:var(--cyan);}
+.sbox.c::before{background:var(--cyan);}
+.sbox.r{border-color:var(--red);color:var(--red);}
+.sbox.r::before{background:var(--red);}
+.sbox.y{border-color:var(--yellow);color:var(--yellow);}
+.sbox.y::before{background:var(--yellow);}
+.sbox.g{border-color:var(--green);color:var(--green);}
+.sbox.g::before{background:var(--green);}
+.snum{font-family:'Orbitron',monospace;font-size:clamp(18px,2.2vw,26px);font-weight:900;display:block;text-shadow:0 0 16px currentColor;}
+.slbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text);opacity:0.75;margin-top:3px;display:block;}
+
+/* ── BULLETS ── */
+.bullets{display:flex;flex-direction:column;gap:9px;}
+.bi{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:rgba(0,245,255,0.02);border:1px solid rgba(0,245,255,0.08);border-left:2px solid var(--cyan);border-radius:2px;}
+.bdot{width:5px;height:5px;background:var(--cyan);border-radius:50%;box-shadow:0 0 6px var(--cyan);margin-top:6px;flex-shrink:0;}
+.btext{font-size:13px;color:var(--text);line-height:1.55;}
+.btext strong{color:var(--cyan);}
+
+/* ── BAR CHART ── */
+.barchart{display:flex;flex-direction:column;gap:11px;}
+.brow{display:flex;flex-direction:column;gap:4px;}
+.bhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.blabel{font-size:12px;color:var(--text);font-weight:600;flex:1;line-height:1.3;}
+.bpct{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;white-space:nowrap;}
+.btrack{height:9px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;}
+.bfill{height:100%;border-radius:2px;position:relative;}
+.bfill::after{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:rgba(255,255,255,0.7);box-shadow:0 0 5px rgba(255,255,255,0.5);}
+.bsub{font-size:10px;color:var(--dim);letter-spacing:0.3px;}
+
+/* ── ALERT ── */
+.alert{border:1px solid;border-radius:4px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;position:relative;overflow:hidden;margin-top:10px;}
+.alert::before{content:'';position:absolute;inset:0;opacity:0.06;}
+.alert.r{border-color:var(--red);}
+.alert.r::before{background:var(--red);}
+.alert.y{border-color:var(--yellow);}
+.alert.y::before{background:var(--yellow);}
+.alert.c{border-color:var(--cyan);}
+.alert.c::before{background:var(--cyan);}
+.adot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.alert.r .adot{background:var(--red);box-shadow:0 0 6px var(--red);}
+.alert.y .adot{background:var(--yellow);box-shadow:0 0 6px var(--yellow);}
+.alert.c .adot{background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+.atext{font-size:12.5px;color:var(--text);line-height:1.6;}
+.atext strong{color:#fff;}
+
+/* ── CRITERIA GRID ── */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.citem{background:rgba(0,245,255,0.02);border:1px solid rgba(0,245,255,0.1);border-radius:3px;padding:9px 10px;display:flex;gap:8px;align-items:flex-start;}
+.cnum{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--cyan);flex-shrink:0;text-shadow:0 0 8px var(--cyan);line-height:1;padding-top:1px;}
+.ctext{font-size:11.5px;color:var(--text);line-height:1.4;}
+.ctext strong{color:var(--yellow);}
+
+/* ── NURSING ── */
+.nursing{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:3px;padding:12px 14px;margin-bottom:10px;}
+.ntag{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:3px;opacity:0.7;}
+.ntitle{font-size:14px;font-weight:700;color:#fff;margin-bottom:3px;}
+.nbody{font-size:12px;color:var(--dim);line-height:1.5;}
+.nbody em{color:var(--yellow);font-style:normal;}
+
+/* ── PIE CIRCLES ── */
+.pierow{display:flex;gap:14px;justify-content:space-around;margin:10px 0;}
+.pitem{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
+.pcircle{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:#fff;position:relative;}
+.pcircle::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1px solid currentColor;opacity:0.3;}
+.plbl{font-size:11px;color:var(--dim);letter-spacing:1px;text-align:center;}
+.pn{font-family:'Orbitron',monospace;font-size:10px;}
+
+/* ── LEGEND ── */
+.legend{display:flex;flex-direction:column;gap:12px;}
+.litem{display:flex;align-items:center;gap:10px;}
+.ldot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor;}
+.lname{font-size:13px;color:var(--text);font-weight:600;}
+.lsub{font-size:10px;color:var(--dim);letter-spacing:0.5px;}
+.lval{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;margin-left:auto;padding-left:12px;}
+
+/* ── BIG STAT ── */
+.bigstat{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--panel);border:1px solid var(--border);border-radius:4px;position:relative;overflow:hidden;}
+.bigstat::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0.4;}
+.bsnum{font-family:'Orbitron',monospace;font-size:38px;font-weight:900;flex-shrink:0;text-shadow:0 0 18px currentColor;line-height:1;}
+.bsinfo{}
+.bslabel{font-size:13px;color:var(--text);font-weight:600;line-height:1.4;}
+.bssub{font-size:10px;color:var(--dim);margin-top:3px;}
+
+/* ── CONCL GRID ── */
+.cgrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.cbox{border:1px solid rgba(0,245,255,0.12);border-radius:4px;padding:14px 12px;background:rgba(0,245,255,0.02);}
+.cboxnum{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;color:var(--cyan);text-shadow:0 0 12px var(--cyan);margin-bottom:4px;}
+.cboxtext{font-size:11.5px;color:var(--text);line-height:1.5;}
+.cboxtext strong{color:var(--yellow);}
+
+/* ── TABLE ── */
+.dtable{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+.dtable th{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;text-align:left;padding:8px 10px;border-bottom:1px solid rgba(0,245,255,0.2);}
+.dtable td{padding:7px 10px;color:var(--text);border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;}
+.dtable tr:hover td{background:rgba(0,245,255,0.03);}
+.dtable .mono{font-family:'Orbitron',monospace;font-size:11px;}
+.dtable .hi{color:var(--red);font-weight:700;}
+.dtable .mid{color:var(--yellow);font-weight:700;}
+.dtable .lo{color:var(--green);font-weight:700;}
+.dtable .note{font-size:10px;color:var(--dim);}
+
+/* ── SOURCES ── */
+.srclist{display:flex;flex-direction:column;gap:7px;margin-top:12px;}
+.srcitem{display:flex;gap:10px;padding:7px 10px;border-left:2px solid var(--dim);background:rgba(255,255,255,0.02);font-size:11.5px;color:var(--dim);line-height:1.5;}
+.srcitem strong{color:var(--text);}
+
+/* ── LIMIT ── */
+.ltag{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin:12px 0 7px;opacity:0.8;}
+.lrow{display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;}
+.ldot2{width:4px;height:4px;background:var(--dim);border-radius:50%;margin-top:7px;flex-shrink:0;}
+.ltext{font-size:12.5px;color:var(--dim);line-height:1.5;}
+.ltext strong{color:var(--text);}
+
+/* ── NAV BAR ── */
+.navbar{position:fixed;bottom:0;left:0;right:0;height:52px;background:rgba(5,11,20,0.95);border-top:1px solid rgba(0,245,255,0.1);display:flex;align-items:center;justify-content:space-between;padding:0 36px;z-index:200;backdrop-filter:blur(10px);}
+.nbtn{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--cyan);background:none;border:1px solid rgba(0,245,255,0.3);padding:7px 18px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;border-radius:2px;}
+.nbtn:hover{background:rgba(0,245,255,0.1);border-color:var(--cyan);box-shadow:0 0 12px rgba(0,245,255,0.2);}
+.nbtn:disabled{opacity:0.2;cursor:default;}
+.ndots{display:flex;gap:5px;}
+.ndot{width:6px;height:6px;border-radius:50%;background:var(--dim);cursor:pointer;transition:all 0.2s;border:none;padding:0;}
+.ndot.active{background:var(--cyan);box-shadow:0 0 7px var(--cyan);}
+.ncounter{font-family:'Orbitron',monospace;font-size:10px;color:var(--dim);letter-spacing:2px;}
+</style>
+</head>
+<body>
+<div class="slideshow">
+
+<!-- ═══════════════════════════════════════
+     SLIDE 1 — TITOLO
+═══════════════════════════════════════ -->
+<div class="slide active" data-n="1">
+  <div class="topbar">
+    <div class="tb-left">// Infermieristica applicata alla Salute Mentale</div>
+    <div class="tb-center">Università Politecnica delle Marche</div>
+    <div class="tb-right">01 / 15</div>
+  </div>
+  <div class="sc">
+    <div class="title-center">
+      <div class="t-tag">// Argomento a scelta — Internet Gaming Disorder</div>
+      <div class="t-main">BENESSERE PSICHICO<br>NEI CONTESTI <span>ROLEPLAY</span></div>
+      <div class="t-div"></div>
+      <div class="t-sub">Un'indagine sulla comunità FiveM tramite questionario adattato IGD-20</div>
+      <div class="t-author">Jonathan D'Ercoli</div>
+      <div class="t-univ">Università Politecnica delle Marche</div>
+      <div class="t-meta">
+        <div class="t-meta-item"><span class="t-meta-k">Campione</span><span class="t-meta-v">33 Giocatori</span></div>
+        <div class="t-meta-item"><span class="t-meta-k">Periodo</span><span class="t-meta-v">Nov 2025</span></div>
+        <div class="t-meta-item"><span class="t-meta-k">Piattaforma</span><span class="t-meta-v">FiveM / RedM</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 2 — IGD DEFINIZIONE
+═══════════════════════════════════════ -->
+<div class="slide" data-n="2">
+  <div class="topbar"><div class="tb-left">// Quadro teorico</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">02 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 01 — Quadro teorico</div>
+    <div class="sh">Cos'è l'Internet <span>Gaming Disorder</span>?</div>
+    <div class="hline"></div>
+    <div class="two">
+      <div class="col">
+        <div class="bt">L'<strong>Internet Gaming Disorder (IGD)</strong> è un pattern di comportamento persistente e ricorrente legato al gioco online, che comporta una progressiva <strong>perdita di controllo</strong> sull'attività ludica, con conseguenze negative sul funzionamento personale, sociale, lavorativo o scolastico.</div>
+        <div class="bt">Il <em>DSM-5 (APA, 2013)</em> lo include nella Sezione III come condizione che necessita di ulteriori studi, identificando <strong>9 criteri diagnostici</strong>. La diagnosi richiede la presenza di <strong>almeno 5 criteri nell'arco di 12 mesi</strong>, con evidente compromissione della vita quotidiana.</div>
+        <div class="alert c" style="margin-top:0"><div class="adot"></div><div class="atext">L'IGD si distingue dal semplice uso eccessivo perché comporta <strong>disfunzione significativa</strong> nella vita quotidiana e <strong>incapacità di controllare</strong> il comportamento nonostante la consapevolezza dei danni.</div></div>
+      </div>
+      <div class="cgrid">
+        <div class="citem"><div class="cnum">1</div><div class="ctext"><strong>Preoccupazione</strong> per il gioco</div></div>
+        <div class="citem"><div class="cnum">2</div><div class="ctext"><strong>Astinenza</strong> quando non si gioca</div></div>
+        <div class="citem"><div class="cnum">3</div><div class="ctext"><strong>Tolleranza</strong>: bisogno di giocare sempre di più</div></div>
+        <div class="citem"><div class="cnum">4</div><div class="ctext">Fallimento nel <strong>ridurre</strong> il gioco</div></div>
+        <div class="citem"><div class="cnum">5</div><div class="ctext">Rinuncia ad <strong>altre attività</strong></div></div>
+        <div class="citem"><div class="cnum">6</div><div class="ctext">Continuare <strong>nonostante</strong> le conseguenze</div></div>
+        <div class="citem"><div class="cnum">7</div><div class="ctext"><strong>Inganno</strong> sul tempo di gioco</div></div>
+        <div class="citem"><div class="cnum">8</div><div class="ctext">Uso del gioco come <strong>fuga emotiva</strong></div></div>
+        <div class="citem" style="grid-column:1/-1"><div class="cnum">9</div><div class="ctext"><strong>Compromissione</strong> di relazioni, lavoro o istruzione a causa del gioco</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 3 — FIVEM
+═══════════════════════════════════════ -->
+<div class="slide" data-n="3">
+  <div class="topbar"><div class="tb-left">// Il contesto</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">03 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 02 — Il contesto</div>
+    <div class="sh">FiveM e il <span>Roleplay Online</span></div>
+    <div class="hline"></div>
+    <div class="two">
+      <div class="col">
+        <div class="bt"><strong>FiveM</strong> è una piattaforma di modding multiplayer per GTA V che consente l'accesso a <strong>server roleplay personalizzati</strong>, in cui il giocatore interpreta un personaggio in scenari di vita simulata (poliziotti, criminali, medici, civili).</div>
+        <div class="bt">A differenza del gaming convenzionale, il roleplay introduce una dimensione <em>identitaria e relazionale profonda</em>: il giocatore non si limita a "giocare", ma <strong>costruisce e abita un personaggio</strong>, sviluppa relazioni stabili e sperimenta dinamiche emotive complesse.</div>
+        <div class="bt">Queste caratteristiche rendono il contesto RP particolarmente rilevante per lo studio dell'IGD, poiché amplificano i meccanismi di <strong>coinvolgimento emotivo</strong>, appartenenza sociale e difficoltà di distacco dalla realtà virtuale.</div>
+      </div>
+      <div class="bullets">
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Identità alternativa:</strong> il giocatore costruisce e mantiene un personaggio nel tempo, con una storia, relazioni e una reputazione virtuale</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Rete sociale virtuale:</strong> si sviluppano legami stabili con altri giocatori all'interno della narrativa condivisa</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Economia emotiva:</strong> gli eventi virtuali (tradimenti, perdite, riconoscimenti) generano risposte emotive reali e intense</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Gerarchia di riferimento:</strong> staff, admin e streamer assumono il ruolo di figure di autorità e riferimento emotivo</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 4 — OBIETTIVO
+═══════════════════════════════════════ -->
+<div class="slide" data-n="4">
+  <div class="topbar"><div class="tb-left">// Obiettivo</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">04 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 03 — Obiettivo dello studio</div>
+    <div class="sh">Cosa <span>abbiamo indagato</span>?</div>
+    <div class="hline"></div>
+    <div class="bt">Lo scopo è esplorare la presenza di <strong>indicatori associati all'IGD</strong> in un campione di giocatori attivi su FiveM/RedM, con attenzione specifica a quattro aree tematiche.</div>
+    <div class="three" style="margin-bottom:14px;">
+      <div class="card"><div class="clabel">// Area 1</div><div class="cbody">Coinvolgimento <strong>emotivo e identitario</strong> nel personaggio: quanto il giocatore si immedesima e porta con sé il personaggio fuori dal gioco</div></div>
+      <div class="card"><div class="clabel">// Area 2</div><div class="cbody">Qualità delle <strong>relazioni sociali</strong>: confronto tra il senso di appartenenza nel contesto virtuale e nella vita reale</div></div>
+      <div class="card"><div class="clabel">// Area 3</div><div class="cbody">Presenza di <strong>sintomi da dipendenza</strong>: perdita di controllo sul tempo di gioco, astinenza, interferenza con impegni reali</div></div>
+    </div>
+    <div class="alert c"><div class="adot"></div><div class="atext">Il questionario è stato somministrato online nel <strong>novembre 2025</strong> a <strong>33 giocatori attivi</strong> su piattaforma FiveM o RedM.</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 5 — METODOLOGIA
+═══════════════════════════════════════ -->
+<div class="slide" data-n="5">
+  <div class="topbar"><div class="tb-left">// Metodologia</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">05 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 04 — Strumento e metodo</div>
+    <div class="sh"><span>Metodologia</span> della ricerca</div>
+    <div class="hline"></div>
+    <div class="two">
+      <div class="col">
+        <div class="card">
+          <div class="clabel">// Strumento</div>
+          <div class="cbody">Questionario adattato dall'<strong>IGD-20 Test</strong> (Pontes et al., 2014), rielaborato per il contesto specifico del roleplay su FiveM/RedM.<br><br><strong>25 item</strong> in formato misto: 24 domande su scala Likert 1–5 (da "per niente" a "moltissimo") + 1 domanda a risposta multipla sullo stato emotivo percepito al termine delle sessioni di gioco.</div>
+        </div>
+        <div class="card">
+          <div class="clabel">// Somministrazione</div>
+          <div class="cbody">Online via <strong>Google Forms</strong> · <em>8–24 novembre 2025</em><br>Campione: <strong>33 giocatori attivi</strong> FiveM/RedM<br><br>Il punteggio totale varia da <strong>24 (minimo)</strong> a <strong>120 (massimo)</strong>. Punteggi più alti indicano maggiore presenza di indicatori associati all'IGD.</div>
+        </div>
+      </div>
+      <div class="bullets">
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Area A — Coinvolgimento identitario:</strong> legame emotivo con il personaggio, identificazione, difficoltà di distacco dopo le sessioni</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Area B — Relazioni sociali:</strong> legami nati nel gioco, confronto con accettazione reale, conflitti relazionali virtuali</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Area C — Dipendenza:</strong> trascurare impegni reali, tentativi falliti di ridurre il gioco, astinenza, uso come fuga</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Area D — Sintomi psicologici:</strong> tristezza persistente, ansia sociale, dissociazione, irritabilità legata al gioco</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Area E — Crescita personale:</strong> autoconoscenza e scoperta di nuovi aspetti di sé tramite il roleplay</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 6 — CAMPIONE
+═══════════════════════════════════════ -->
+<div class="slide" data-n="6">
+  <div class="topbar"><div class="tb-left">// Campione</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">06 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 05 — Caratteristiche del campione</div>
+    <div class="sh">Chi ha <span>risposto</span>?</div>
+    <div class="hline"></div>
+    <div class="stat-row">
+      <div class="sbox c"><span class="snum">33</span><span class="slbl">Partecipanti totali</span></div>
+      <div class="sbox c"><span class="snum">26,9</span><span class="slbl">Età media (anni)</span></div>
+      <div class="sbox c"><span class="snum">18–43</span><span class="slbl">Range d'età</span></div>
+      <div class="sbox c"><span class="snum">63,6%</span><span class="slbl">Genere maschile (21)</span></div>
+      <div class="sbox c"><span class="snum">87,9%</span><span class="slbl">Gioca da oltre 3 anni</span></div>
+    </div>
+    <div class="two" style="gap:16px;">
+      <div class="card">
+        <div class="clabel">// Occupazione</div>
+        <div class="barchart" style="margin-top:8px;">
+          <div class="brow"><div class="bhead"><div class="blabel">Lavoratore</div><div class="bpct" style="color:var(--cyan)">54,5% <span style="color:var(--dim);font-size:10px;">(18 persone)</span></div></div><div class="btrack"><div class="bfill" style="width:54.5%;background:linear-gradient(90deg,#00f5ff,#80faff);box-shadow:0 0 8px rgba(0,245,255,0.4)"></div></div></div>
+          <div class="brow"><div class="bhead"><div class="blabel">Studente</div><div class="bpct" style="color:var(--cyan)">21,2% <span style="color:var(--dim);font-size:10px;">(7 persone)</span></div></div><div class="btrack"><div class="bfill" style="width:21.2%;background:linear-gradient(90deg,#00f5ff,#80faff)"></div></div></div>
+          <div class="brow"><div class="bhead"><div class="blabel">Disoccupato</div><div class="bpct" style="color:var(--cyan)">21,2% <span style="color:var(--dim);font-size:10px;">(7 persone)</span></div></div><div class="btrack"><div class="bfill" style="width:21.2%;background:linear-gradient(90deg,#00f5ff,#80faff)"></div></div></div>
+          <div class="brow"><div class="bhead"><div class="blabel">Non specificato</div><div class="bpct" style="color:var(--dim)">3,1% (1 persona)</div></div><div class="btrack"><div class="bfill" style="width:3.1%;background:#4a6380"></div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="clabel">// Ore settimanali dedicate al roleplay</div>
+        <div class="barchart" style="margin-top:8px;">
+          <div class="brow"><div class="bhead"><div class="blabel">Più di 40 ore/sett.</div><div class="bpct" style="color:var(--red)">30,3% <span style="color:var(--dim);font-size:10px;">(10 persone)</span></div></div><div class="btrack"><div class="bfill" style="width:30.3%;background:linear-gradient(90deg,#ff2d55,#ff6b6b);box-shadow:0 0 8px rgba(255,45,85,0.4)"></div></div><div class="bsub">Equivale a oltre un lavoro part-time settimanale dedicato al gioco</div></div>
+          <div class="brow"><div class="bhead"><div class="blabel">20–40 ore/sett.</div><div class="bpct" style="color:var(--orange)">27,3% <span style="color:var(--dim);font-size:10px;">(9 persone)</span></div></div><div class="btrack"><div class="bfill" style="width:27.3%;background:linear-gradient(90deg,#ff6b1a,#ffaa44)"></div></div></div>
+          <div class="brow"><div class="bhead"><div class="blabel">5–10 ore/sett.</div><div class="bpct" style="color:var(--yellow)">21,2% <span style="color:var(--dim);font-size:10px;">(7 persone)</span></div></div><div class="btrack"><div class="bfill" style="width:21.2%;background:linear-gradient(90deg,#ffe600,#fff176)"></div></div></div>
+          <div class="brow"><div class="bhead"><div class="blabel">10–20 ore/sett.</div><div class="bpct" style="color:var(--green)">9,1% <span style="color:var(--dim);font-size:10px;">(3 persone)</span></div></div><div class="btrack"><div class="bfill" style="width:9.1%;background:linear-gradient(90deg,#39ff14,#a8ff80)"></div></div></div>
+          <div class="brow"><div class="bhead"><div class="blabel">Meno di 5 ore/sett.</div><div class="bpct" style="color:var(--green)">12,1% <span style="color:var(--dim);font-size:10px;">(4 persone)</span></div></div><div class="btrack"><div class="bfill" style="width:12.1%;background:linear-gradient(90deg,#39ff14,#a8ff80)"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 7 — PROFILI DI RISCHIO
+═══════════════════════════════════════ -->
+<div class="slide" data-n="7">
+  <div class="topbar"><div class="tb-left">// Risultati generali</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">07 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 06 — Punteggi e profili di rischio</div>
+    <div class="sh">Profili di <span>Rischio IGD</span></div>
+    <div class="hline"></div>
+    <div class="two" style="align-items:center;gap:30px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <svg width="210" height="210" viewBox="0 0 210 210">
+          <defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <circle cx="105" cy="105" r="80" fill="none" stroke="#0d1e35" stroke-width="28"/>
+          <!-- Basso rischio: 24,2% → 87° su 360° -->
+          <circle cx="105" cy="105" r="80" fill="none" stroke="#39ff14" stroke-width="28" stroke-dasharray="121 382" stroke-dashoffset="0" transform="rotate(-90 105 105)" filter="url(#glow)"/>
+          <!-- Rischio moderato: 48,5% → 175° -->
+          <circle cx="105" cy="105" r="80" fill="none" stroke="#ffe600" stroke-width="28" stroke-dasharray="242 261" stroke-dashoffset="-121" transform="rotate(-90 105 105)" filter="url(#glow)"/>
+          <!-- Alto rischio: 27,3% → 98° -->
+          <circle cx="105" cy="105" r="80" fill="none" stroke="#ff2d55" stroke-width="28" stroke-dasharray="140 363" stroke-dashoffset="-363" transform="rotate(-90 105 105)" filter="url(#glow)"/>
+          <text x="105" y="99" text-anchor="middle" font-family="Orbitron,monospace" font-size="26" font-weight="900" fill="#fff">75,8%</text>
+          <text x="105" y="120" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="12" fill="#4a6380" letter-spacing="1">A RISCHIO</text>
+        </svg>
+        <div style="font-size:11px;color:var(--dim);letter-spacing:1px;text-align:center;">Punteggio medio campione: <span style="color:var(--cyan);font-family:'Orbitron',monospace;font-size:13px;">55,0</span> / 120 pt</div>
+      </div>
+      <div class="col">
+        <!-- Tabella profili -->
+        <div class="card" style="padding:14px;">
+          <div class="clabel">// Come si leggono i profili di rischio</div>
+          <table class="dtable">
+            <thead>
+              <tr><th>Profilo</th><th>Punteggio</th><th>N. persone</th><th>% campione</th><th>Significato clinico</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span style="color:var(--red);font-weight:700;">■ Alto rischio</span></td><td class="mono hi">≥ 70 pt</td><td class="mono">9</td><td class="mono hi">27,3%</td><td class="note">Presenza marcata di indicatori IGD; possibile compromissione funzionale</td></tr>
+              <tr><td><span style="color:var(--yellow);font-weight:700;">■ Rischio moderato</span></td><td class="mono mid">40–69 pt</td><td class="mono">16</td><td class="mono mid">48,5%</td><td class="note">Indicatori presenti, monitoraggio consigliato</td></tr>
+              <tr><td><span style="color:var(--green);font-weight:700;">■ Basso rischio</span></td><td class="mono lo">&lt; 40 pt</td><td class="mono">8</td><td class="mono lo">24,2%</td><td class="note">Coinvolgimento nella norma, nessun segnale critico</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert y"><div class="adot"></div><div class="atext">Quasi <strong>3 giocatori su 4</strong> (75,8%) si collocano in una fascia che richiede attenzione clinica. Il punteggio minimo osservato è stato <strong>25 pt</strong>, il massimo <strong>102 pt</strong> su 120 possibili.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 8 — INDICATORI DIPENDENZA
+═══════════════════════════════════════ -->
+<div class="slide" data-n="8">
+  <div class="topbar"><div class="tb-left">// Indicatori critici</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">08 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 07 — Indicatori di dipendenza</div>
+    <div class="sh">Indicatori di <span>Dipendenza</span> — Criteri DSM-5</div>
+    <div class="hline"></div>
+    <div class="two" style="gap:20px;">
+      <div class="col">
+        <div class="card" style="padding:14px 16px;">
+          <div class="clabel">// Come leggere questi dati</div>
+          <div class="cbody">Le barre mostrano la <strong>% di rispondenti con punteggio 4 o 5</strong> (su scala 1–5) per quella domanda. Un punteggio di 4–5 indica che il comportamento è presente <em>spesso o sempre</em> nella vita del giocatore, configurandosi come un indicatore critico in linea con i criteri DSM-5 per l'IGD.</div>
+        </div>
+        <div class="barchart" style="margin-top:4px;">
+          <div class="brow">
+            <div class="bhead"><div class="blabel">Usa il gioco per sfuggire a stress / problemi reali</div><div class="bpct" style="color:var(--red)">48,5% <span style="color:var(--dim);font-size:10px;">(16/33)</span></div></div>
+            <div class="btrack"><div class="bfill" style="width:48.5%;background:linear-gradient(90deg,#ff2d55,#ff6b6b);box-shadow:0 0 10px rgba(255,45,85,0.5)"></div></div>
+            <div class="bsub">Criterio DSM-5 #8: uso del gioco come fuga da stati emotivi negativi</div>
+          </div>
+          <div class="brow">
+            <div class="bhead"><div class="blabel">Difficoltà a "staccare" dopo sessioni intense</div><div class="bpct" style="color:var(--orange)">30,3% <span style="color:var(--dim);font-size:10px;">(10/33)</span></div></div>
+            <div class="btrack"><div class="bfill" style="width:30.3%;background:linear-gradient(90deg,#ff6b1a,#ffaa44)"></div></div>
+            <div class="bsub">Indica difficoltà di regolazione emotiva post-sessione</div>
+          </div>
+          <div class="brow">
+            <div class="bhead"><div class="blabel">Difficoltà se smettesse improvvisamente di giocare</div><div class="bpct" style="color:var(--orange)">27,3% <span style="color:var(--dim);font-size:10px;">(9/33)</span></div></div>
+            <div class="btrack"><div class="bfill" style="width:27.3%;background:linear-gradient(90deg,#ff6b1a,#ffaa44)"></div></div>
+            <div class="bsub">Criterio DSM-5 #2: sintomi da astinenza comportamentale</div>
+          </div>
+          <div class="brow">
+            <div class="bhead"><div class="blabel">Trascura impegni reali per giocare</div><div class="bpct" style="color:var(--yellow)">24,2% <span style="color:var(--dim);font-size:10px;">(8/33)</span></div></div>
+            <div class="btrack"><div class="bfill" style="width:24.2%;background:linear-gradient(90deg,#ffe600,#fff176)"></div></div>
+            <div class="bsub">Criterio DSM-5 #9: compromissione di attività reali</div>
+          </div>
+          <div class="brow">
+            <div class="bhead"><div class="blabel">Ha tentato di ridurre il gioco senza riuscirci</div><div class="bpct" style="color:var(--yellow)">24,2% <span style="color:var(--dim);font-size:10px;">(8/33)</span></div></div>
+            <div class="btrack"><div class="bfill" style="width:24.2%;background:linear-gradient(90deg,#ffe600,#fff176)"></div></div>
+            <div class="bsub">Criterio DSM-5 #4: perdita di controllo sul comportamento</div>
+          </div>
+          <div class="brow">
+            <div class="bhead"><div class="blabel">Ansia o irritabilità quando non può connettersi</div><div class="bpct" style="color:var(--cyan)">21,2% <span style="color:var(--dim);font-size:10px;">(7/33)</span></div></div>
+            <div class="btrack"><div class="bfill" style="width:21.2%;background:linear-gradient(90deg,#00f5ff,#80faff)"></div></div>
+            <div class="bsub">Criterio DSM-5 #2: astinenza emotiva offline</div>
+          </div>
+          <div class="brow">
+            <div class="bhead"><div class="blabel">Si considera esplicitamente dipendente</div><div class="bpct" style="color:var(--green)">15,2% <span style="color:var(--dim);font-size:10px;">(5/33)</span></div></div>
+            <div class="btrack"><div class="bfill" style="width:15.2%;background:linear-gradient(90deg,#39ff14,#a8ff80)"></div></div>
+            <div class="bsub">Autopercezione soggettiva del problema</div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card" style="padding:14px;">
+          <div class="clabel">// Il gap più significativo: comportamento vs consapevolezza</div>
+          <table class="dtable">
+            <thead><tr><th>Indicatore</th><th>% critica (4–5)</th></tr></thead>
+            <tbody>
+              <tr><td>Fuga emotiva tramite gioco</td><td class="mono hi">48,5%</td></tr>
+              <tr><td>Difficoltà a smettere</td><td class="mono hi">27,3%</td></tr>
+              <tr><td>Impegni reali trascurati</td><td class="mono mid">24,2%</td></tr>
+              <tr><td>Si percepisce dipendente</td><td class="mono lo">15,2%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert r"><div class="adot"></div><div class="atext">Il <strong>48,5%</strong> mostra un coping disfunzionale tramite il gioco, ma solo il <strong>15,2%</strong> si riconosce come dipendente. Questo gap di <strong>33 punti percentuali</strong> è un indicatore clinico di <strong>anosognosia comportamentale</strong>.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 9 — RELAZIONI
+═══════════════════════════════════════ -->
+<div class="slide" data-n="9">
+  <div class="topbar"><div class="tb-left">// Area relazionale</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">09 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 08 — Coinvolgimento emotivo e relazionale</div>
+    <div class="sh">Relazioni e <span>Identità Virtuale</span></div>
+    <div class="hline"></div>
+    <div class="two" style="gap:20px;">
+      <div class="col">
+        <div class="bigstat"><div class="bsnum" style="color:var(--cyan);">3,73</div><div class="bsinfo"><div class="bslabel">Legami significativi nati nel contesto RP</div><div class="bssub">Media più alta del campione · scala 1–5 · Significa: spesso o sempre presenti</div></div></div>
+        <div class="bigstat"><div class="bsnum" style="color:var(--orange);">3,18</div><div class="bsinfo"><div class="bslabel">Sofferenza per dinamiche relazionali del gioco</div><div class="bssub">Punteggio medio-alto · le relazioni virtuali producono stati emotivi reali</div></div></div>
+        <div class="bigstat"><div class="bsnum" style="color:var(--yellow);">2,61</div><div class="bsinfo"><div class="bslabel">Sentirsi più compresi nel gioco che nella realtà</div><div class="bssub">Segnale di bisogni di appartenenza non soddisfatti nella vita reale</div></div></div>
+      </div>
+      <div class="col">
+        <div class="card" style="padding:14px;">
+          <div class="clabel">// Come leggere le medie (scala 1–5)</div>
+          <table class="dtable">
+            <thead><tr><th>Punteggio</th><th>Significato</th></tr></thead>
+            <tbody>
+              <tr><td class="mono lo">1,0 – 2,0</td><td>Comportamento assente o molto raro</td></tr>
+              <tr><td class="mono" style="color:var(--cyan)">2,0 – 3,0</td><td>Presenza occasionale, non problematica</td></tr>
+              <tr><td class="mono mid">3,0 – 4,0</td><td>Presenza frequente, da monitorare</td></tr>
+              <tr><td class="mono hi">4,0 – 5,0</td><td>Presenza marcata, indicatore critico</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="bt" style="margin-top:4px;">Il punteggio di <strong>3,73/5</strong> sui legami relazionali è la media più elevata tra tutte le domande del questionario. Indica che per la maggioranza del campione il roleplay è diventato un <strong>contesto di relazioni primarie</strong>, non accessorie.</div>
+        <div class="alert y"><div class="adot"></div><div class="atext">Non si tratta solo di "giocare troppo": si costruisce un'<strong>identità alternativa</strong> e una rete sociale che può diventare un sostituto maladattivo della vita reale.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 10 — STATO POST-SESSIONE
+═══════════════════════════════════════ -->
+<div class="slide" data-n="10">
+  <div class="topbar"><div class="tb-left">// Benessere post-sessione</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">10 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 09 — Stato emotivo dopo il gioco</div>
+    <div class="sh">Come ci si sente <span>Dopo il Gioco</span>?</div>
+    <div class="hline"></div>
+    <div class="two" style="gap:24px;align-items:center;">
+      <div class="col">
+        <div class="pierow">
+          <div class="pitem"><div class="pcircle" style="background:rgba(0,245,255,0.12);color:var(--cyan);font-size:16px;">63%</div><div class="plbl">Sereno</div><div class="pn" style="color:var(--cyan);">21 / 33</div></div>
+          <div class="pitem"><div class="pcircle" style="background:rgba(255,107,26,0.12);color:var(--orange);font-size:16px;">15%</div><div class="plbl">Eccitato</div><div class="pn" style="color:var(--orange);">5 / 33</div></div>
+          <div class="pitem"><div class="pcircle" style="background:rgba(255,45,85,0.12);color:var(--red);font-size:16px;">15%</div><div class="plbl">Esaurito</div><div class="pn" style="color:var(--red);">5 / 33</div></div>
+          <div class="pitem"><div class="pcircle" style="background:rgba(188,0,255,0.12);color:var(--purple);font-size:16px;">6%</div><div class="plbl">Confuso</div><div class="pn" style="color:var(--purple);">2 / 33</div></div>
+        </div>
+        <div class="card" style="padding:14px;margin-top:10px;">
+          <div class="clabel">// Tabella dettagliata</div>
+          <table class="dtable">
+            <thead><tr><th>Stato</th><th>N.</th><th>%</th><th>Interpretazione clinica</th></tr></thead>
+            <tbody>
+              <tr><td style="color:var(--cyan);">Sereno</td><td class="mono">21</td><td class="mono lo">63,6%</td><td class="note">Può indicare funzione regolativa, ma anche risoluzione del craving</td></tr>
+              <tr><td style="color:var(--orange);">Eccitato</td><td class="mono">5</td><td class="mono mid">15,2%</td><td class="note">Arousal post-sessione: difficoltà di de-attivazione</td></tr>
+              <tr><td style="color:var(--red);">Esaurito</td><td class="mono">5</td><td class="mono hi">15,2%</td><td class="note">Segnale di sfruttamento eccessivo delle risorse</td></tr>
+              <tr><td style="color:var(--purple);">Confuso</td><td class="mono">2</td><td class="mono hi">6,1%</td><td class="note">Possibile dissociazione, confusione virtuale/reale</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col">
+        <div class="bt">La prevalenza del <strong>63,6% "sereno"</strong> potrebbe apparire positiva, ma in letteratura il sollievo post-gioco è spesso interpretato come <strong>risoluzione di uno stato di craving</strong>, non come benessere reale.</div>
+        <div class="bt">Il <strong>36,4%</strong> del campione (12 persone) riferisce stati post-sessione negativi o di arousal eccessivo: questa quota è clinicamente rilevante.</div>
+        <div class="alert c"><div class="adot"></div><div class="atext">Il modello della <strong>dipendenza comportamentale</strong> prevede che l'attività venga usata per alleviare stati di disagio (ansia, noia, stress). Il "sentirsi sereni" dopo può riflettere questo meccanismo piuttosto che un effetto genuinamente positivo.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 11 — CRESCITA PERSONALE
+═══════════════════════════════════════ -->
+<div class="slide" data-n="11">
+  <div class="topbar"><div class="tb-left">// Dimensione positiva</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">11 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 10 — Dimensione positiva del roleplay</div>
+    <div class="sh">Crescita Personale e <span>Autoconsapevolezza</span></div>
+    <div class="hline"></div>
+    <div class="two" style="gap:20px;">
+      <div class="col">
+        <div class="stat-row">
+          <div class="sbox g"><span class="snum">2,64</span><span class="slbl">Scoperta lati del carattere</span></div>
+          <div class="sbox g"><span class="snum">2,52</span><span class="slbl">Autoconoscenza tramite RP</span></div>
+          <div class="sbox" style="border-color:var(--cyan);color:var(--cyan);"><span class="snum" style="font-size:18px;">2,33</span><span class="slbl">Sicurezza nel gioco vs realtà</span></div>
+        </div>
+        <div class="card" style="padding:14px;">
+          <div class="clabel">// Come si leggono questi punteggi</div>
+          <div class="cbody">Le medie tra 2,0 e 3,0 indicano una presenza <strong>occasionale ma reale</strong> di questa dimensione. Non è il dato dominante del campione, ma è presente in modo significativo per una parte dei rispondenti. Una media di <em>2,64</em> significa che circa un terzo del campione riconosce di aver scoperto aspetti di sé tramite il roleplay.</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="bt">Per alcuni utenti il roleplay rappresenta uno <strong>spazio di elaborazione emotiva e autoesplorazione</strong>: la possibilità di interpretare personaggi diversi da sé permette di sperimentare stati interiori e modalità relazionali non accessibili nella vita quotidiana.</div>
+        <div class="alert c"><div class="adot"></div><div class="atext">Il roleplay online <strong>non è riducibile</strong> a un fenomeno puramente disfunzionale. Per una parte del campione svolge una funzione di elaborazione identitaria che va <strong>riconosciuta e valorizzata</strong> nel piano assistenziale.</div></div>
+        <div class="card" style="padding:14px;">
+          <div class="clabel">// Implicazione infermieristica</div>
+          <div class="cbody">L'intervento non dovrebbe mirare alla sola <strong>riduzione del gioco</strong>, ma alla comprensione della <em>funzione psicologica</em> che esso svolge per quel soggetto. Valorizzare le risorse e le capacità riflessive del paziente è parte integrante del piano di cura.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 12 — DISCUSSIONE
+═══════════════════════════════════════ -->
+<div class="slide" data-n="12">
+  <div class="topbar"><div class="tb-left">// Discussione</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">12 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 11 — Interpretazione dei dati</div>
+    <div class="sh"><span>Discussione</span> clinica</div>
+    <div class="hline"></div>
+    <div class="two" style="gap:20px;">
+      <div class="col">
+        <div class="bt">I risultati evidenziano un quadro complesso: il roleplay su FiveM si configura come un'attività ad <strong>alto potenziale di coinvolgimento psicologico</strong>, con caratteristiche che in una porzione significativa del campione soddisfano criteri associabili all'IGD.</div>
+        <div class="alert r"><div class="adot"></div><div class="atext"><strong>Anosognosia comportamentale:</strong> la dissociazione tra comportamenti oggettivi di dipendenza (48,5% fuga emotiva, 24,2% impegni trascurati) e bassa autopercezione del problema (15,2%) è un elemento clinicamente rilevante, frequente nelle dipendenze comportamentali.</div></div>
+        <div class="alert y" style="margin-top:8px;"><div class="adot"></div><div class="atext">La forte dimensione relazionale e identitaria introduce un <strong>fattore di rischio specifico</strong> rispetto al gaming tradizionale: non si tratta solo di "giocare troppo", ma di costruire un'identità alternativa e una rete sociale virtuale che possono diventare un sostituto maladattivo.</div></div>
+      </div>
+      <div class="bullets">
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Non patologizzare il gioco in sé:</strong> riconoscere i segnali di compromissione del funzionamento quotidiano, non il semplice uso del videogioco</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Attenzione alla funzione di coping disfunzionale:</strong> l'uso del gioco per sfuggire a stress e problemi reali è il criterio più frequente nel campione (48,5%) ed è il segnale d'allarme prioritario</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Valorizzare le risorse del paziente:</strong> la capacità riflessiva stimolata dal roleplay può essere un punto di partenza per l'intervento, non un ostacolo</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Approccio motivazionale e non giudicante:</strong> l'intervento deve essere orientato alla persona, rispettando la funzione che il gioco svolge nella sua vita</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 13 — RUOLO INFERMIERE
+═══════════════════════════════════════ -->
+<div class="slide" data-n="13">
+  <div class="topbar"><div class="tb-left">// Ruolo professionale</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">13 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 12 — Ruolo infermieristico</div>
+    <div class="sh">Il Ruolo dell'<span>Infermiere</span> nella Salute Mentale</div>
+    <div class="hline"></div>
+    <div class="two" style="gap:20px;">
+      <div class="col">
+        <div class="bt">L'infermiere di salute mentale ha un ruolo cruciale nell'<strong>individuazione precoce</strong> dei segnali di dipendenza comportamentale, nella <strong>valutazione del funzionamento globale</strong> del soggetto e nella promozione di strategie di coping adattive.</div>
+        <div class="nursing">
+          <div class="ntag">// Diagnosi infermieristica 1</div>
+          <div class="ntitle">Coping inefficace</div>
+          <div class="nbody">Correlato all'uso del gioco come meccanismo di fuga, evidenziato da <em>incapacità di gestire lo stress senza ricorrere al roleplay</em> (48,5% del campione)</div>
+        </div>
+        <div class="nursing">
+          <div class="ntag">// Diagnosi infermieristica 2</div>
+          <div class="ntitle">Interazione sociale compromessa</div>
+          <div class="nbody">Correlata alla <em>preferenza per le relazioni virtuali rispetto a quelle reali</em>, con progressivo isolamento dal contesto reale</div>
+        </div>
+        <div class="nursing">
+          <div class="ntag">// Diagnosi infermieristica 3</div>
+          <div class="ntitle">Rischio di identità personale disturbata</div>
+          <div class="nbody">Correlato all'<em>eccessiva identificazione con il personaggio di gioco</em>, con difficoltà a distinguere gli stati emotivi propri da quelli del personaggio</div>
+        </div>
+      </div>
+      <div class="bullets">
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Colloquio clinico:</strong> esplorazione della funzione del gioco, del tempo dedicato e dell'impatto sulle attività quotidiane</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Osservazione e scale:</strong> utilizzo di strumenti validati (IGD-20, IGDS9-SF) per una valutazione strutturata del rischio</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Psicoeducazione:</strong> informare il paziente sulle caratteristiche dell'IGD e sul riconoscimento dei propri pattern comportamentali</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Intervento motivazionale:</strong> lavorare sull'ambivalenza del paziente rispetto al cambiamento, rispettando i suoi tempi</div></div>
+        <div class="bi"><div class="bdot"></div><div class="btext"><strong>Rete di supporto:</strong> coinvolgimento della famiglia e attivazione di risorse territoriali per il supporto al paziente</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 14 — CONCLUSIONI
+═══════════════════════════════════════ -->
+<div class="slide" data-n="14">
+  <div class="topbar"><div class="tb-left">// Conclusioni</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">14 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 13 — Conclusioni</div>
+    <div class="sh"><span>Conclusioni</span> e implicazioni</div>
+    <div class="hline"></div>
+    <div class="cgrid2">
+      <div class="cbox"><div class="cboxnum">75,8%</div><div class="cboxtext">del campione mostra un profilo di rischio <strong>moderato o elevato</strong> per l'IGD (25 su 33 persone)</div></div>
+      <div class="cbox"><div class="cboxnum">48,5%</div><div class="cboxtext">usa il gioco come <strong>meccanismo di coping disfunzionale</strong> per fuggire da stress e problemi reali</div></div>
+      <div class="cbox"><div class="cboxnum">33 pt</div><div class="cboxtext">gap tra chi mostra <strong>comportamenti oggettivi</strong> di dipendenza e chi si percepisce tale: anosognosia</div></div>
+      <div class="cbox"><div class="cboxnum">IGD</div><div class="cboxtext">territorio clinico <strong>emergente</strong> in cui identità, relazione e tecnologia si intrecciano in modo nuovo</div></div>
+    </div>
+    <div class="alert c"><div class="adot"></div><div class="atext">Questa indagine suggerisce che il roleplay online su FiveM rappresenta un <strong>contesto ad alto coinvolgimento emotivo</strong> in cui i confini tra esperienza virtuale e reale sono spesso permeabili. I professionisti infermieristici sono chiamati a considerare il gioco online come un <strong>territorio clinico rilevante</strong>, sviluppando competenze di assessment specifiche e approcci non giudicanti orientati alla persona.</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 15 — LIMITI E FONTI
+═══════════════════════════════════════ -->
+<div class="slide" data-n="15">
+  <div class="topbar"><div class="tb-left">// Limiti e fonti</div><div class="tb-center">Università Politecnica delle Marche — Jonathan D'Ercoli</div><div class="tb-right">15 / 15</div></div>
+  <div class="sc">
+    <div class="stag">// 14 — Limiti e riferimenti</div>
+    <div class="sh">Limiti dello Studio e <span>Riferimenti</span></div>
+    <div class="hline"></div>
+    <div class="two" style="gap:20px;">
+      <div class="col">
+        <div class="ltag">// Limiti dello studio</div>
+        <div class="lrow"><div class="ldot2"></div><div class="ltext">Campione di dimensioni ridotte (<strong>n=33</strong>), non probabilistico: i risultati sono esplorativi e non generalizzabili alla popolazione generale dei giocatori</div></div>
+        <div class="lrow"><div class="ldot2"></div><div class="ltext">Possibile <strong>autoselection bias</strong>: chi ha risposto potrebbe essere più consapevole o coinvolto rispetto alla media degli utenti FiveM</div></div>
+        <div class="lrow"><div class="ldot2"></div><div class="ltext">Assenza di un <strong>gruppo di controllo</strong> (giocatori non-RP) che limita la comparazione con il gaming tradizionale</div></div>
+        <div class="ltag">// Sviluppi futuri</div>
+        <div class="lrow"><div class="ldot2"></div><div class="ltext">Replicare lo studio con campioni più ampi, utilizzando la versione originale validata dell'<strong>IGD-20</strong> o dell'IGDS9-SF</div></div>
+        <div class="lrow"><div class="ldot2"></div><div class="ltext">Includere un <strong>confronto tra piattaforme</strong> (gaming competitivo vs roleplay) per identificare i fattori di rischio specifici dell'RP</div></div>
+        <div class="lrow"><div class="ldot2"></div><div class="ltext">Studio <strong>longitudinale</strong> per valutare l'evoluzione del coinvolgimento nel tempo e l'efficacia di interventi infermieristici mirati</div></div>
+      </div>
+      <div class="col">
+        <div class="ltag">// Riferimenti bibliografici</div>
+        <div class="srclist">
+          <div class="srcitem"><strong>APA (2013)</strong> — Diagnostic and Statistical Manual of Mental Disorders, 5th Edition (DSM-5). Arlington, VA: American Psychiatric Publishing.</div>
+          <div class="srcitem"><strong>Pontes, H.M. et al. (2014)</strong> — The development and psychometric evaluation of the Internet Gaming Disorder Scale–20 (IGDS20). Cyberpsychology, Behavior, and Social Networking.</div>
+          <div class="srcitem"><strong>Pontes, H.M. & Griffiths, M.D. (2015)</strong> — Measuring DSM-5 Internet Gaming Disorder: Development and validation of a short psychometric scale. Computers in Human Behavior.</div>
+          <div class="srcitem"><strong>Lemmens, J.S. et al. (2009)</strong> — Development and Validation of a Game Addiction Scale for Adolescents. Media Psychology.</div>
+          <div class="srcitem"><strong>WHO (2022)</strong> — International Classification of Diseases, 11th Revision (ICD-11): Gaming Disorder (6C51). World Health Organization.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end slideshow -->
+
+<!-- NAV BAR -->
+<div class="navbar">
+  <button class="nbtn" id="btn-prev" onclick="go(-1)" disabled>◀ PREV</button>
+  <div style="display:flex;align-items:center;gap:20px;">
+    <div class="ndots" id="ndots"></div>
+    <div class="ncounter" id="ncounter">01 / 15</div>
+  </div>
+  <button class="nbtn" id="btn-next" onclick="go(1)">NEXT ▶</button>
+</div>
+
+<script>
+let cur = 0;
+const total = 15;
+const slides = document.querySelectorAll('.slide');
+const dotsEl = document.getElementById('ndots');
+const counter = document.getElementById('ncounter');
+const btnP = document.getElementById('btn-prev');
+const btnN = document.getElementById('btn-next');
+
+// build dots
+for(let i=0;i<total;i++){
+  const d=document.createElement('button');
+  d.className='ndot'+(i===0?' active':'');
+  d.onclick=()=>goTo(i);
+  dotsEl.appendChild(d);
+}
+
+function goTo(n){
+  slides[cur].classList.remove('active');
+  dotsEl.children[cur].classList.remove('active');
+  cur=n;
+  slides[cur].classList.add('active');
+  dotsEl.children[cur].classList.add('active');
+  counter.textContent=String(cur+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
+  btnP.disabled=cur===0;
+  btnN.disabled=cur===total-1;
+}
+
+function go(d){ const n=cur+d; if(n>=0&&n<total) goTo(n); }
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(1);}
+  if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
+});
+</script>
+</body>
+</html>
